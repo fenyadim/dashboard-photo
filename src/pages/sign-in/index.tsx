@@ -1,4 +1,4 @@
-import { RegisterForm } from '@/entities/authForm/ui/registerForm'
+import { RegisterForm } from '@/features/authForm'
 
 export const SignIn = () => {
 	return (
