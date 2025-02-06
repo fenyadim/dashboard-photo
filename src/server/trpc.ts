@@ -1,10 +1,8 @@
 import { initTRPC } from '@trpc/server'
 
-interface Meta {
-	span: string
-}
+import { AppContext } from './ctx'
 
-export const t = initTRPC.meta<Meta>().create()
+export const t = initTRPC.context<AppContext>().create()
 
 export const router = t.router
 export const procedure = t.procedure

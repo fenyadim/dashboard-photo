@@ -2,24 +2,19 @@
 
 import { InputForm } from '@/entities/input-form'
 import { Alert, AlertTitle, Button } from '@/shared/ui'
+import _ from 'lodash'
 import { useActionState } from 'react'
 
-import { registerAction } from '../actions/register'
+import { loginAction } from '../actions/login'
 import { initialData } from '../model/initialData'
 
-export const RegisterForm = () => {
-  const [state, action, pending] = useActionState(registerAction, {
-    data: initialData
+export const LoginForm = () => {
+  const [state, action, pending] = useActionState(loginAction, {
+    data: _.pick(initialData, ['email', 'password'])
   })
 
   return (
     <form action={action} className='flex flex-col gap-4'>
-      <InputForm
-        name='fullName'
-        label='Полное имя'
-        defaultValue={state.data.fullName}
-        errors={state?.errors?.fullName}
-      />
       <InputForm
         name='email'
         label='Email'
@@ -33,12 +28,6 @@ export const RegisterForm = () => {
         type='password'
         errors={state?.errors?.password}
       />
-      <InputForm
-        name='confirmPassword'
-        label='Подтверждение пароля'
-        type='password'
-        errors={state?.errors?.confirmPassword}
-      />
 
       {state.message && (
         <Alert className='mt-3' variant={state.status}>
@@ -47,7 +36,7 @@ export const RegisterForm = () => {
       )}
 
       <Button disabled={pending} type='submit' className='mt-3'>
-        {pending ? 'Загрузка...' : 'Зарегистрироваться'}
+        {pending ? 'Загрузка...' : 'Войти'}
       </Button>
     </form>
   )
