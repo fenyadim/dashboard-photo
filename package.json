@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "pgc": "prisma generate --schema=./packages/db/schema.prisma",
-    "pmd": "prisma migrate dev"
+    "pmd": "prisma migrate dev",
+    "studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^6.3.1",

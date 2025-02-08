@@ -1,7 +1,6 @@
 'use server'
 
 import { api } from '@/app/_trpc/serverClient'
-import { createSession } from '@/shared/lib/session'
 import { hash } from 'bcryptjs'
 import { redirect } from 'next/navigation'
 
@@ -30,28 +29,16 @@ export const registerAction = async (
   const { fullName, email, password } = validatedFields.data
 
   try {
-    const findUser = await api.user.findOne.query(email)
-
-    if (findUser) {
-      return {
-        errors: {
-          email: ['Пользователь с таким email уже существует']
-        },
-        data: rawData
-      }
-    }
-
     const hashedPassword = await hash(password, 10)
-    const user = await api.user.create.mutate({
+    await api.user.register.mutate({
       fullName,
       email,
       password: hashedPassword
     })
-    await createSession(user.id)
   } catch (e) {
     return {
       status: 'error',
-      message: 'Что-то пошло не так. Попробуйте еще раз',
+      message: (e as Error).message,
       data: rawData
     }
   }

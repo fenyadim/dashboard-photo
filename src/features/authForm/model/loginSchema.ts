@@ -1,4 +1,4 @@
-import { zInputUser } from '@/server/routers/user/input'
+import { zInputUser } from '@/server/routers/user/register/input'
 
 import { FormState } from '../types'
 

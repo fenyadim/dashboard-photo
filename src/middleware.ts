@@ -1,4 +1,4 @@
-import { decrypt } from '@/shared/lib/session'
+import { decrypt, updateSession } from '@/shared/lib/session'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -10,11 +10,26 @@ export default async function middleware(req: NextRequest) {
   const isProtectedRoute = protectedRoutes.includes(path)
   const isPublicRoute = publicRoutes.includes(path)
 
-  const cookie = (await cookies()).get('session')?.value
-  const session = await decrypt(cookie)
+  const accessToken = (await cookies()).get('accessToken')?.value
+  const refreshToken = (await cookies()).get('refreshToken')?.value
+  const session = await decrypt(accessToken)
+
+  console.log('access', accessToken, 'refresh', refreshToken)
+
+  // if (!refreshToken) {
+  //   console.log(accessToken, refreshToken)
+  //   return NextResponse.redirect(new URL('/login', req.nextUrl))
+  // }
+
+  // if (!accessToken || !session) {
+  //   await updateSession(refreshToken)
+  // }
 
   if (isProtectedRoute && !session?.userId) {
-    return NextResponse.redirect(new URL('/login', req.nextUrl))
+    if (!refreshToken) {
+      return NextResponse.redirect(new URL('/login', req.nextUrl))
+    }
+    await updateSession(refreshToken)
   }
 
   if (

@@ -1,8 +1,6 @@
 'use server'
 
 import { api } from '@/app/_trpc/serverClient'
-import { createSession } from '@/shared/lib/session'
-import { compareSync } from 'bcryptjs'
 import { redirect } from 'next/navigation'
 
 import { FormStateLogin, loginSchema } from '../model/loginSchema'
@@ -29,29 +27,10 @@ export const loginAction = async (
   const { email, password } = validatedFields.data
 
   try {
-    const findUser = await api.user.findOne.query(email)
-
-    if (!findUser) {
-      return {
-        errors: {
-          email: [
-            'Пользователь не найден. Пожалуйста, проверьте введенные данные'
-          ]
-        },
-        data: rawData
-      }
-    }
-
-    if (!compareSync(password, findUser.password)) {
-      return {
-        errors: {
-          password: ['Неверный пароль. Пожалуйста, проверьте введенные данные']
-        },
-        data: rawData
-      }
-    }
-
-    await createSession(findUser.id)
+    await api.user.login.query({
+      email,
+      password
+    })
   } catch (e) {
     return {
       message: 'Что-то пошло не так. Попробуйте еще раз',
