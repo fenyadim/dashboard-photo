@@ -1,6 +1,7 @@
 import { cn } from '@/shared/lib/utils'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import Link from 'next/link'
 
 import Provider from './_trpc/Provider'
 import './globals.css'
@@ -34,6 +35,10 @@ export default function RootLayout({
           'antialiased dark p-5 h-full'
         )}
       >
+        <div className='flex gap-5'>
+          <Link href='/'>Home</Link>
+          <Link href='/dashboard'>Dashboard</Link>
+        </div>
         <Provider>{children}</Provider>
       </body>
     </html>

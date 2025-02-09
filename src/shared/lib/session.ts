@@ -7,8 +7,6 @@ import { cookies } from 'next/headers'
 
 const secretKey = process.env.SESSION_SECRET
 const encodeKey = new TextEncoder().encode(secretKey)
-const expiresAtAccess = new Date(Date.now() + 1 * 60 * 1000)
-const expiresAtRefresh = new Date(Date.now() + 30 * 7 * 24 * 60 * 60 * 1000)
 
 export async function encrypt(payload: JWTPayload, expiresAt: string) {
   return new SignJWT(payload)
@@ -29,12 +27,31 @@ export async function decrypt(session: string | undefined = '') {
   }
 }
 
-export async function createSession(userId: string) {
-  // const expiresAtAccess = new Date(Date.now() + 15 * 60 * 1000)
-  const expiresAtAccess = new Date(Date.now() + 2 * 60 * 1000)
+async function createToken(
+  tokenName: 'accessToken' | 'refreshToken',
+  userId: string
+) {
+  if (tokenName === 'accessToken') {
+    const expiresAtAccess = new Date(Date.now() + 15 * 60 * 1000)
+    return {
+      token: await encrypt({ userId }, '15min'),
+      expiresAt: expiresAtAccess
+    }
+  }
   const expiresAtRefresh = new Date(Date.now() + 30 * 7 * 24 * 60 * 60 * 1000)
-  const accessToken = await encrypt({ userId, expiresAtAccess }, '1min')
-  const refreshToken = await encrypt({ userId, expiresAtRefresh }, '30d')
+  return {
+    token: await encrypt({ userId, expiresAtRefresh }, '30d'),
+    expiresAt: expiresAtRefresh
+  }
+}
+
+export async function createSession(userId: string) {
+  const { token: accessToken, expiresAt: expiresAtAccess } = await createToken(
+    'accessToken',
+    userId
+  )
+  const { token: refreshToken, expiresAt: expiresAtRefresh } =
+    await createToken('refreshToken', userId)
   const cookieStore = await cookies()
 
   cookieStore.set('accessToken', accessToken, {
@@ -61,26 +78,25 @@ export async function updateSession(refreshToken: string) {
   if (refreshToken !== refreshTokenCookie) {
     cookieStore.set('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: true,
-      expires: expiresAtRefresh
+      secure: true
     })
   }
-  const accessToken = (await cookies()).get('accessToken')?.value
-  const payload = await decrypt(accessToken)
 
-  if (!payload || !accessToken) {
-    return null
-  }
+  const payload = await decrypt(refreshTokenCookie)
+
+  const { token: accessToken, expiresAt: expiresAtAccess } = await createToken(
+    'accessToken',
+    payload?.userId as string
+  )
 
   cookieStore.set('accessToken', accessToken, {
     secure: true,
     expires: expiresAtAccess
   })
-
-  console.log('Сессия обновлена')
 }
 
 export async function deleteSession() {
   const cookieStore = await cookies()
   cookieStore.delete('accessToken')
+  cookieStore.delete('refreshToken')
 }

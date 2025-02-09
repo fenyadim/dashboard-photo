@@ -20,7 +20,7 @@ model User {
   password String
   phone    String?
 
-  refreshToken String
+  refreshToken String @default("")
 
   role UserRole @default(USER)
 

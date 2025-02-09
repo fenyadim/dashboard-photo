@@ -1,6 +1,7 @@
 'use server'
 
 import { api } from '@/app/_trpc/serverClient'
+import { createSession } from '@/shared/lib/session'
 import { hash } from 'bcryptjs'
 import { redirect } from 'next/navigation'
 
@@ -30,10 +31,15 @@ export const registerAction = async (
 
   try {
     const hashedPassword = await hash(password, 10)
-    await api.user.register.mutate({
+    const user = await api.user.register.mutate({
       fullName,
       email,
       password: hashedPassword
+    })
+    const { refreshToken } = await createSession(user.id)
+    await api.user.update.mutate({
+      id: user.id,
+      refreshToken
     })
   } catch (e) {
     return {

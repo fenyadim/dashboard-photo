@@ -14,17 +14,6 @@ export default async function middleware(req: NextRequest) {
   const refreshToken = (await cookies()).get('refreshToken')?.value
   const session = await decrypt(accessToken)
 
-  console.log('access', accessToken, 'refresh', refreshToken)
-
-  // if (!refreshToken) {
-  //   console.log(accessToken, refreshToken)
-  //   return NextResponse.redirect(new URL('/login', req.nextUrl))
-  // }
-
-  // if (!accessToken || !session) {
-  //   await updateSession(refreshToken)
-  // }
-
   if (isProtectedRoute && !session?.userId) {
     if (!refreshToken) {
       return NextResponse.redirect(new URL('/login', req.nextUrl))

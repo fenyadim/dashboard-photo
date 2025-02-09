@@ -1,6 +1,7 @@
 'use server'
 
 import { api } from '@/app/_trpc/serverClient'
+import { updateSession } from '@/shared/lib/session'
 import { redirect } from 'next/navigation'
 
 import { FormStateLogin, loginSchema } from '../model/loginSchema'
@@ -27,13 +28,14 @@ export const loginAction = async (
   const { email, password } = validatedFields.data
 
   try {
-    await api.user.login.query({
+    const user = await api.user.login.query({
       email,
       password
     })
+    await updateSession(user.refreshToken)
   } catch (e) {
     return {
-      message: 'Что-то пошло не так. Попробуйте еще раз',
+      message: (e as Error).message,
       status: 'error',
       data: rawData
     }

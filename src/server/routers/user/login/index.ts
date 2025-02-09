@@ -1,5 +1,4 @@
 import { procedure } from '@/server/trpc'
-import { updateSession } from '@/shared/lib/session'
 import { compareSync } from 'bcryptjs'
 
 import { zLoginInput } from './input'
@@ -21,7 +20,5 @@ export const loginRouter = procedure
       throw new Error('Неверный пароль')
     }
 
-    await updateSession(findUser.refreshToken)
-
-    return true
+    return findUser
   })
