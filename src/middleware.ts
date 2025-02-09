@@ -3,12 +3,12 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 const protectedRoutes = ['/dashboard']
-const publicRoutes = ['/login', '/register', '/']
+const authRoute = ['/login', '/register']
 
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
   const isProtectedRoute = protectedRoutes.includes(path)
-  const isPublicRoute = publicRoutes.includes(path)
+  const isAuthRoute = authRoute.includes(path)
 
   const accessToken = (await cookies()).get('accessToken')?.value
   const refreshToken = (await cookies()).get('refreshToken')?.value
@@ -22,7 +22,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   if (
-    isPublicRoute &&
+    isAuthRoute &&
     session?.userId &&
     !req.nextUrl.pathname.startsWith('/dashboard')
   ) {
