@@ -1,4 +1,5 @@
-import { initTRPC } from '@trpc/server'
+import { TRPCError, initTRPC } from '@trpc/server'
+import _ from 'lodash'
 import superjson from 'superjson'
 import { ZodError } from 'zod'
 
@@ -25,6 +26,20 @@ export const createTRPCRouter = t.router
 export const createCallerFactory = t.createCallerFactory
 export const publicProcedure = t.procedure
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
-  console.log(ctx)
-  return next({ ctx })
+  if (!ctx.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' })
+  }
+
+  const user = await ctx.prisma.user.findUnique({
+    where: {
+      id: ctx.user
+    }
+  })
+
+  return next({
+    ctx: {
+      ...ctx,
+      user: _.pick(user, ['id', 'email', 'role'])
+    }
+  })
 })

@@ -19,6 +19,7 @@ export const appRouter = createTRPCRouter({
     }
   }),
   welcomeProtected: protectedProcedure.query(({ ctx }) => {
+    console.log(ctx.user)
     return {
       status: 'OK',
       message: 'Welcome protected'
