@@ -12,7 +12,7 @@ export const appRouter = createTRPCRouter({
     update: updateRouter
   },
   welcome: publicProcedure.query(({ ctx }) => {
-    console.log(ctx)
+    console.log(ctx.user)
     return {
       status: 'OK',
       message: 'Welcome'
