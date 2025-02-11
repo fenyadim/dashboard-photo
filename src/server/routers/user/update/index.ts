@@ -1,8 +1,8 @@
-import { publicProcedure } from '@/server/init'
+import { protectedProcedure } from '@/server/init'
 
 import { zUpdateInput } from './input'
 
-export const updateRouter = publicProcedure
+export const updateRouter = protectedProcedure
   .input(zUpdateInput)
   .mutation(async ({ input, ctx }) => {
     const findUser = await ctx.prisma.user.findUnique({

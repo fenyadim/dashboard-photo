@@ -1,4 +1,5 @@
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '../init'
+import { getMe } from './user/getMe'
 import { loginRouter } from './user/login'
 import { refreshRouter } from './user/refresh'
 import { registerRouter } from './user/register'
@@ -9,10 +10,11 @@ export const appRouter = createTRPCRouter({
     register: registerRouter,
     login: loginRouter,
     refresh: refreshRouter,
-    update: updateRouter
+    update: updateRouter,
+    getMe: getMe
   },
   welcome: publicProcedure.query(({ ctx }) => {
-    console.log(ctx)
+    console.log(ctx.user)
     return {
       status: 'OK',
       message: 'Welcome'

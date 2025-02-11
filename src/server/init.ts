@@ -30,16 +30,10 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ code: 'UNAUTHORIZED' })
   }
 
-  const user = await ctx.prisma.user.findUnique({
-    where: {
-      id: ctx.user
-    }
-  })
-
   return next({
     ctx: {
       ...ctx,
-      user: _.pick(user, ['id', 'email', 'role'])
+      user: _.pick(ctx.user, ['id', 'email', 'role'])
     }
   })
 })
