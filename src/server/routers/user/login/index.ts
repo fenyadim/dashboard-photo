@@ -1,9 +1,9 @@
-import { procedure } from '@/server/trpc'
+import { publicProcedure } from '@/server/init'
 import { compareSync } from 'bcryptjs'
 
 import { zLoginInput } from './input'
 
-export const loginRouter = procedure
+export const loginRouter = publicProcedure
   .input(zLoginInput)
   .query(async ({ input, ctx }) => {
     const findUser = await ctx.prisma.user.findUnique({

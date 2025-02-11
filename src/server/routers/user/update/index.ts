@@ -1,8 +1,8 @@
-import { procedure } from '@/server/trpc'
+import { publicProcedure } from '@/server/init'
 
 import { zUpdateInput } from './input'
 
-export const updateRouter = procedure
+export const updateRouter = publicProcedure
   .input(zUpdateInput)
   .mutation(async ({ input, ctx }) => {
     const findUser = await ctx.prisma.user.findUnique({

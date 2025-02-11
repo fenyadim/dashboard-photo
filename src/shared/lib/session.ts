@@ -8,7 +8,11 @@ import { cookies } from 'next/headers'
 const secretKey = process.env.SESSION_SECRET
 const encodeKey = new TextEncoder().encode(secretKey)
 
-export async function encrypt(payload: JWTPayload, expiresAt: string) {
+interface PayloadToken extends JWTPayload {
+  userId: string
+}
+
+export async function encrypt(payload: PayloadToken, expiresAt: string) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -18,7 +22,7 @@ export async function encrypt(payload: JWTPayload, expiresAt: string) {
 
 export async function decrypt(session: string | undefined = '') {
   try {
-    const { payload } = await jwtVerify(session, encodeKey, {
+    const { payload } = await jwtVerify<PayloadToken>(session, encodeKey, {
       algorithms: ['HS256']
     })
     return payload
@@ -29,29 +33,31 @@ export async function decrypt(session: string | undefined = '') {
 
 async function createToken(
   tokenName: 'accessToken' | 'refreshToken',
-  userId: string
+  payload: PayloadToken
 ) {
   if (tokenName === 'accessToken') {
-    const expiresAtAccess = new Date(Date.now() + 15 * 60 * 1000)
+    const expiresAtAccess = new Date(Date.now() + 1 * 60 * 1000)
     return {
-      token: await encrypt({ userId }, '15min'),
+      token: await encrypt(payload, '1min'),
       expiresAt: expiresAtAccess
     }
   }
-  const expiresAtRefresh = new Date(Date.now() + 30 * 7 * 24 * 60 * 60 * 1000)
+  // const expiresAtRefresh = new Date(Date.now() + 30 * 7 * 24 * 60 * 60 * 1000)
+  const expiresAtRefresh = new Date(Date.now() + 2 * 60 * 1000)
   return {
-    token: await encrypt({ userId, expiresAtRefresh }, '30d'),
+    token: await encrypt(payload, '2min'),
     expiresAt: expiresAtRefresh
   }
 }
 
-export async function createSession(userId: string) {
+export async function createSession(payload: PayloadToken) {
   const { token: accessToken, expiresAt: expiresAtAccess } = await createToken(
     'accessToken',
-    userId
+    payload
   )
   const { token: refreshToken, expiresAt: expiresAtRefresh } =
-    await createToken('refreshToken', userId)
+    await createToken('refreshToken', payload)
+
   const cookieStore = await cookies()
 
   cookieStore.set('accessToken', accessToken, {
@@ -60,6 +66,7 @@ export async function createSession(userId: string) {
     sameSite: 'lax',
     path: '/'
   })
+
   cookieStore.set('refreshToken', refreshToken, {
     httpOnly: true,
     secure: true,
@@ -71,27 +78,33 @@ export async function createSession(userId: string) {
   return { accessToken, refreshToken }
 }
 
-export async function updateSession(refreshToken: string) {
-  const refreshTokenCookie = (await cookies()).get('refreshToken')?.value
-  const cookieStore = await cookies()
+export const getSession = async () => {
+  const accessToken = (await cookies()).get('accessToken')?.value
+  const payload = await decrypt(accessToken)
 
-  if (refreshToken !== refreshTokenCookie) {
-    cookieStore.set('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true
-    })
+  if (!accessToken || !payload) {
+    return null
   }
 
-  const payload = await decrypt(refreshTokenCookie)
+  return {
+    userId: payload.userId
+  }
+}
 
-  const { token: accessToken, expiresAt: expiresAtAccess } = await createToken(
-    'accessToken',
-    payload?.userId as string
-  )
+export async function updateSession(refreshToken: string) {
+  const payload = await decrypt(refreshToken)
+
+  const { token: accessToken, expiresAt } = await createToken('accessToken', {
+    userId: payload!.userId
+  })
+
+  const cookieStore = await cookies()
 
   cookieStore.set('accessToken', accessToken, {
     secure: true,
-    expires: expiresAtAccess
+    expires: expiresAt,
+    sameSite: 'lax',
+    path: '/'
   })
 }
 

@@ -1,7 +1,7 @@
 import { logoutAction } from '@/features/authForm/actions/logout'
 import { Button } from '@/shared/ui'
 
-const DashboardRoute = () => {
+const DashboardRoute = async () => {
   return (
     <div>
       <h1>Dashboard</h1>

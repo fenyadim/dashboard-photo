@@ -1,8 +1,9 @@
-import { procedure } from '@/server/trpc'
+import { publicProcedure } from '@/server/init'
+import { hashSync } from 'bcryptjs'
 
 import { zInputUser } from './input'
 
-export const registerRouter = procedure
+export const registerRouter = publicProcedure
   .input(zInputUser)
   .mutation(async ({ input, ctx }) => {
     const findUser = await ctx.prisma.user.findUnique({
@@ -17,7 +18,8 @@ export const registerRouter = procedure
 
     const user = await ctx.prisma.user.create({
       data: {
-        ...input
+        ...input,
+        password: hashSync(input.password, 10)
       }
     })
 

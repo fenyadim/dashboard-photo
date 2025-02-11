@@ -1,8 +1,7 @@
 'use server'
 
-import { api } from '@/app/_trpc/serverClient'
+import { trpcServer } from '@/app/_trpc/server'
 import { createSession } from '@/shared/lib/session'
-import { hash } from 'bcryptjs'
 import { redirect } from 'next/navigation'
 
 import { FormStateRegister, registrationSchema } from '../model/registerSchema'
@@ -30,14 +29,16 @@ export const registerAction = async (
   const { fullName, email, password } = validatedFields.data
 
   try {
-    const hashedPassword = await hash(password, 10)
-    const user = await api.user.register.mutate({
+    const user = await trpcServer.user.register({
       fullName,
       email,
-      password: hashedPassword
+      password
     })
-    const { refreshToken } = await createSession(user.id)
-    await api.user.update.mutate({
+    const { refreshToken } = await createSession({
+      userId: user.id,
+      role: user.role
+    })
+    await trpcServer.user.update({
       id: user.id,
       refreshToken
     })
@@ -49,5 +50,5 @@ export const registerAction = async (
     }
   }
 
-  redirect('/')
+  redirect('/dashboard')
 }

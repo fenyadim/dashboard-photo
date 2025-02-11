@@ -1,9 +1,9 @@
-import { procedure } from '@/server/trpc'
+import { publicProcedure } from '@/server/init'
 import { updateSession } from '@/shared/lib/session'
 import { cookies } from 'next/headers'
 import { z } from 'zod'
 
-export const refreshRouter = procedure
+export const refreshRouter = publicProcedure
   .input(z.string())
   .query(async ({ ctx, input }) => {
     const findUser = await ctx.prisma.user.findUnique({

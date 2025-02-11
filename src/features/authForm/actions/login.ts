@@ -1,7 +1,7 @@
 'use server'
 
-import { api } from '@/app/_trpc/serverClient'
-import { updateSession } from '@/shared/lib/session'
+import { trpcServer } from '@/app/_trpc/server'
+import { createSession } from '@/shared/lib/session'
 import { redirect } from 'next/navigation'
 
 import { FormStateLogin, loginSchema } from '../model/loginSchema'
@@ -28,11 +28,18 @@ export const loginAction = async (
   const { email, password } = validatedFields.data
 
   try {
-    const user = await api.user.login.query({
+    const user = await trpcServer.user.login({
       email,
       password
     })
-    await updateSession(user.refreshToken)
+    const { refreshToken } = await createSession({
+      userId: user.id,
+      role: user.role
+    })
+    await trpcServer.user.update({
+      id: user.id,
+      refreshToken: refreshToken
+    })
   } catch (e) {
     return {
       message: (e as Error).message,
@@ -41,5 +48,5 @@ export const loginAction = async (
     }
   }
 
-  redirect('/')
+  redirect('/dashboard')
 }

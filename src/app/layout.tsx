@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Link from 'next/link'
 
-import Provider from './_trpc/Provider'
+import { TRPCProvider } from './_trpc/Provider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -27,20 +27,22 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang='ru' className='min-h-full h-full'>
-      <body
-        className={cn(
-          geistSans.variable,
-          geistMono.variable,
-          'antialiased dark p-5 h-full'
-        )}
-      >
-        <div className='flex gap-5'>
-          <Link href='/'>Home</Link>
-          <Link href='/dashboard'>Dashboard</Link>
-        </div>
-        <Provider>{children}</Provider>
-      </body>
-    </html>
+    <TRPCProvider>
+      <html lang='ru' className='min-h-full h-full'>
+        <body
+          className={cn(
+            geistSans.variable,
+            geistMono.variable,
+            'antialiased dark p-5 h-full'
+          )}
+        >
+          <div className='flex gap-5'>
+            <Link href='/'>Home</Link>
+            <Link href='/dashboard'>Dashboard</Link>
+          </div>
+          {children}
+        </body>
+      </html>
+    </TRPCProvider>
   )
 }
