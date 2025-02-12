@@ -4,13 +4,7 @@ import { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch'
 
 export const createAppContext = async (opts?: FetchCreateContextFnOptions) => {
   const prisma = new PrismaClient()
-  const payloadAccess = await getSession()
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: payloadAccess?.userId
-    }
-  })
+  const user = await getSession(prisma)
 
   return {
     prisma,

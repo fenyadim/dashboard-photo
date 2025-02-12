@@ -2,8 +2,10 @@
 
 import 'server-only'
 
+import { Prisma, PrismaClient } from '@prisma/client'
+import { DefaultArgs } from '@prisma/client/runtime/library'
 import { JWTPayload, SignJWT, jwtVerify } from 'jose'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 
 const secretKey = process.env.SESSION_SECRET
 const encodeKey = new TextEncoder().encode(secretKey)
@@ -78,17 +80,26 @@ export async function createSession(payload: PayloadToken) {
   return { accessToken, refreshToken }
 }
 
-export const getSession = async () => {
-  const accessToken = (await cookies()).get('accessToken')?.value
-  const payload = await decrypt(accessToken)
+export const getSession = async (
+  db: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>
+) => {
+  const accessToken = (await headers()).get('Authorization')
 
-  if (!accessToken || !payload) {
+  if (!accessToken) {
     return null
   }
 
-  return {
-    userId: payload.userId
+  const payload = await decrypt(accessToken)
+
+  if (!payload) {
+    return null
   }
+
+  return await db.user.findUnique({
+    where: {
+      id: payload.userId
+    }
+  })
 }
 
 export async function updateSession(refreshToken: string) {

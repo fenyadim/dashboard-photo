@@ -6,16 +6,11 @@ import type { QueryClient } from '@tanstack/react-query'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { httpBatchLink } from '@trpc/client'
 import { createTRPCReact } from '@trpc/react-query'
+import { cookies } from 'next/headers'
 import { useState } from 'react'
 import superjson from 'superjson'
 
 export const trpcClient = createTRPCReact<AppRouter>()
-
-let token: string
-
-export function setToken(newToken: string) {
-  token = newToken
-}
 
 let clientQueryClientSingleton: QueryClient
 
@@ -51,9 +46,10 @@ export function TRPCProvider(
         httpBatchLink({
           transformer: superjson,
           url: getUrl(),
-          headers() {
+          async headers() {
+            const accessToken = (await cookies()).get('accessToken')?.value
             return {
-              Authorization: `Bearer ${token}`
+              ...(accessToken && { Authorization: `Bearer ${accessToken}` })
             }
           }
         })
