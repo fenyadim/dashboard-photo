@@ -1,5 +1,6 @@
 'use client'
 
+import { trpcClient } from '@/app/_trpc/Provider'
 import { InputForm } from '@/entities/input-form'
 import { Alert, AlertTitle, Button } from '@/shared/ui'
 import { useActionState } from 'react'
@@ -12,8 +13,19 @@ export const RegisterForm = () => {
     data: initialData
   })
 
+  const trpcUtils = trpcClient.useUtils()
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    trpcUtils.invalidate()
+  }
+
   return (
-    <form action={action} className='flex flex-col gap-4'>
+    <form
+      action={action}
+      onSubmit={handleSubmit}
+      className='flex flex-col gap-4'
+    >
       <InputForm
         name='fullName'
         label='Полное имя'
